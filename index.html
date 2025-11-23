@@ -96,6 +96,7 @@
     .nuclear-21-30 { color: #ff8000; font-weight: bold; } /* 30次后 - 橙色 */
     .nuclear-31-plus { color: #ff0000; font-weight: bold; } /* 50次后 - 红色 */
     
+    /* 移动端优化样式 */
     @media (max-width: 600px) { 
       table, thead, tbody, th, td, tr { 
         display: block; 
@@ -104,24 +105,38 @@
         display: none; 
       } 
       tr { 
-        margin-bottom: .75rem; 
+        margin-bottom: 1rem; 
         border: 1px solid #cfd8dc; 
         border-radius: 4px; 
-        padding: 0.5rem;
+        padding: 0.75rem;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        position: relative;
+        overflow: hidden;
       } 
       td { 
         border: none; 
         position: relative; 
-        padding-left: 40%; 
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
+        padding: 0.75rem 1rem 0.75rem 45%; 
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
       } 
+      td:last-child {
+        border-bottom: none;
+      }
       td::before { 
         content: attr(data-label); 
         position: absolute; 
         left: 1rem; 
+        top: 0.75rem;
         font-weight: 600; 
         color: #0d47a1; 
+        width: 40%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       } 
     }
   </style>
@@ -138,7 +153,7 @@
     <div id="resultContainer"></div>
   </main>
 
-  <!-- 使用远程JS文件，删除HTML中内嵌的JS代码 -->
+  <!-- 使用远程JS文件 -->
   <script src="https://dongshengamestudio.github.io/FireflyPheromoneDatabaseAPI/FireflyPheromoneDatabaseAPI.js"></script>
   <script>
     async function handleSearch() {
