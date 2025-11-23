@@ -96,7 +96,7 @@
     .nuclear-21-30 { color: #ff8000; font-weight: bold; } /* 30次后 - 橙色 */
     .nuclear-31-plus { color: #ff0000; font-weight: bold; } /* 50次后 - 红色 */
     
-    /* 移动端优化样式 */
+    /* 移动端优化样式 - 完全重写 */
     @media (max-width: 600px) { 
       table, thead, tbody, th, td, tr { 
         display: block; 
@@ -117,27 +117,36 @@
       td { 
         border: none; 
         position: relative; 
-        padding: 0.75rem 1rem 0.75rem 45%; 
-        min-height: 2.5rem;
+        padding: 0.75rem 0.5rem; 
+        min-height: auto;
         display: flex;
-        align-items: center;
+        flex-direction: column;
         border-bottom: 1px solid #f0f0f0;
+        word-break: break-word;
+        overflow-wrap: break-word;
       } 
       td:last-child {
         border-bottom: none;
       }
       td::before { 
         content: attr(data-label); 
-        position: absolute; 
-        left: 1rem; 
-        top: 0.75rem;
         font-weight: 600; 
         color: #0d47a1; 
-        width: 40%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+        background: #f0f8ff;
+        padding: 0.25rem 0.5rem;
+        border-radius: 3px;
+        display: inline-block;
+        width: 100%;
+        box-sizing: border-box;
       } 
+      /* 确保内容区域不会溢出 */
+      td > * {
+        max-width: 100%;
+        word-break: break-word;
+        overflow-wrap: break-word;
+      }
     }
   </style>
 </head>
