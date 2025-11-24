@@ -17,6 +17,7 @@
       color: #fff; 
       padding: 1rem 1.5rem; 
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
     }
     header h1 { 
       margin: 0; 
@@ -96,6 +97,58 @@
     .nuclear-21-30 { color: #ff8000; font-weight: bold; } /* 30次后 - 橙色 */
     .nuclear-31-plus { color: #ff0000; font-weight: bold; } /* 50次后 - 红色 */
     
+    /* 称号颜色样式 - 强制应用 */
+    td[data-label="称号"],
+    .title-cell,
+    .fpdb-table td.title-cell {
+      color: #af5e04 !important;
+      font-weight: 500;
+    }
+    
+    /* 确保称号文本在所有状态下都保持指定颜色 */
+    .title-cell *,
+    .title-scroll-text,
+    .title-scroll-container,
+    .title-scroll-container span {
+      color: #af5e04 !important;
+    }
+    
+    /* 称号滚动容器 */
+    .title-scroll-container {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+    }
+    
+    .title-scroll-text {
+      display: inline-block;
+      white-space: nowrap;
+      padding-left: 100%;
+      animation: scroll-text 15s linear infinite;
+      color: #af5e04 !important;
+    }
+    
+    @keyframes scroll-text {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-100%);
+      }
+    }
+    
+    /* 版本指示器 */
+    .version-indicator {
+      position: absolute;
+      top: 0.5rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    
     /* 移动端优化样式 - 完全重写 */
     @media (max-width: 600px) { 
       table, thead, tbody, th, td, tr { 
@@ -147,12 +200,34 @@
         word-break: break-word;
         overflow-wrap: break-word;
       }
+      /* 移动端称号样式 */
+      .title-cell,
+      td[data-label="称号"] {
+        overflow: hidden;
+        position: relative;
+        color: #af5e04 !important;
+      }
+      .title-scroll-container {
+        width: 100%;
+      }
+      /* 移动端版本指示器 */
+      .version-indicator {
+        position: relative;
+        top: auto;
+        right: auto;
+        display: block;
+        text-align: center;
+        margin-top: 0.5rem;
+        background: rgba(13, 71, 161, 0.1);
+        color: #0d47a1;
+      }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>萤火虫信息素数据库</h1>
+    <div id="versionIndicator" class="version-indicator">正在检测版本...</div>
   </header>
   <main>
     <div class="search-box">
@@ -162,19 +237,122 @@
     <div id="resultContainer"></div>
   </main>
 
-  <!-- 使用远程JS文件 -->
-  <script src="https://dongshengamestudio.github.io/FireflyPheromoneDatabaseAPI/FireflyPheromoneDatabaseAPI.js"></script>
   <script>
-    async function handleSearch() {
-      const keyword = document.getElementById('searchInput').value.trim();
-      const list = FPDB.searchPlayer(keyword);
-      document.getElementById('resultContainer').innerHTML = FPDB.renderTable(list);
+    // 版本检测和API加载函数
+    async function loadAPIVersion() {
+      const versionIndicator = document.getElementById('versionIndicator');
+      let apiUrl = "https://dongshengamestudio.github.io/FireflyPheromoneDatabaseAPI/FireflyPheromoneDatabaseAPI.js";
+      let versionType = "正式版";
+      
+      try {
+        // 尝试加载本地版本检测文件
+        const response = await fetch('./TheSecurityBetaVersionBeforeTheOfficialVersionIsUploaded.js?t=' + new Date().getTime());
+        if (response.ok) {
+          const content = await response.text();
+          const trimmedContent = content.trim();
+          
+          console.log("检测到版本文件内容:", trimmedContent);
+          
+          // 修正条件判断逻辑
+          if (trimmedContent === "InformalVersionPre-uploadBetaSecureVersionEnvironment") {
+            // 使用正式版
+            apiUrl = "https://dongshengamestudio.github.io/FireflyPheromoneDatabaseAPI/FireflyPheromoneDatabaseAPI.js";
+            versionType = "正式版";
+            console.log("使用正式版API:", apiUrl);
+          } else if (trimmedContent === "It Ls A Test Version Of The Security Version Environment Before The Official Version Is Uploaded") {
+            // 使用测试版
+            apiUrl = "https://dongshengamestudio.github.io/FireflyPheromoneDatabaseBetaAPI/FireflyPheromoneDatabaseBetaAPI.js";
+            versionType = "测试版";
+            console.log("切换到测试版API:", apiUrl);
+          } else {
+            console.log("版本文件内容不匹配，使用默认正式版");
+          }
+        } else {
+          console.log("版本文件不存在或无法访问，使用默认正式版");
+        }
+      } catch (error) {
+        console.log('无法加载版本检测文件，使用默认正式版:', error);
+        versionType = "正式版 (默认)";
+      }
+      
+      // 更新版本指示器
+      versionIndicator.textContent = versionType;
+      
+      // 动态加载API
+      return new Promise((resolve, reject) => {
+        // 先移除可能已存在的脚本
+        const existingScript = document.querySelector('script[src*="FireflyPheromoneDatabase"]');
+        if (existingScript) {
+          existingScript.remove();
+        }
+        
+        const script = document.createElement('script');
+        script.src = apiUrl + '?t=' + new Date().getTime(); // 添加时间戳避免缓存
+        script.onload = () => {
+          console.log(`成功加载 ${versionType} API: ${apiUrl}`);
+          resolve();
+        };
+        script.onerror = () => {
+          console.error(`加载 ${versionType} API 失败: ${apiUrl}`);
+          reject(new Error(`无法加载 ${versionType} API`));
+        };
+        document.head.appendChild(script);
+      });
     }
     
-    (async () => {
-      await FPDB.loadData();
-      handleSearch(); // 初始展示全部
-    })();
+    // 搜索处理函数
+    async function handleSearch() {
+      const keyword = document.getElementById('searchInput').value.trim();
+      if (typeof FPDB !== 'undefined' && FPDB.searchPlayer) {
+        const list = FPDB.searchPlayer(keyword);
+        document.getElementById('resultContainer').innerHTML = FPDB.renderTable(list);
+        
+        // 为所有称号单元格添加滚动效果
+        addTitleScrollEffect();
+      } else {
+        document.getElementById('resultContainer').innerHTML = 
+          '<p class="no-data">API未正确加载，请刷新页面重试</p>';
+      }
+    }
+    
+    // 为称号添加滚动效果
+    function addTitleScrollEffect() {
+      const titleCells = document.querySelectorAll('.title-cell');
+      titleCells.forEach(cell => {
+        const titleText = cell.textContent.trim();
+        // 如果称号文本超过15个字符，添加滚动效果
+        if (titleText.length > 15 && titleText !== " " && titleText !== "") {
+          cell.innerHTML = `<div class="title-scroll-container"><span class="title-scroll-text">${titleText}</span></div>`;
+        }
+      });
+    }
+    
+    // 初始化函数
+    async function initializeApp() {
+      try {
+        // 加载API版本
+        await loadAPIVersion();
+        
+        // 等待API数据加载
+        if (typeof FPDB !== 'undefined' && FPDB.loadData) {
+          await FPDB.loadData();
+          
+          // 初始展示全部数据
+          handleSearch();
+          
+          console.log('萤火虫信息素数据库初始化完成');
+        } else {
+          throw new Error('FPDB对象未正确初始化');
+        }
+      } catch (error) {
+        console.error('初始化失败:', error);
+        document.getElementById('resultContainer').innerHTML = 
+          '<p class="no-data">系统初始化失败，请刷新页面重试</p>';
+      }
+    }
+    
+    // 启动应用
+    initializeApp();
   </script>
 </body>
 </html>
